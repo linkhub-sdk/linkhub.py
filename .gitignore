@@ -2,7 +2,7 @@
 .*.swp
 *.log
 *~
-boto.egg-info
+linkhub.egg-info
 build/
 dist/
 MANIFEST
