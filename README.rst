@@ -1,8 +1,27 @@
-# linkhub.py
+####
+linkhub.py
+####
+linkhub 1.0.0
+
 링크인증 API for Python.
 
-* how to use
-  + pip install linkhub
-
 * requirements
-  + Python 2.5+
+  * Python 2.5+
+
+************
+Installation
+************
+
+Install via `pip`_:
+
+::
+
+    $ pip install linkhub
+
+Install from source:
+
+::
+
+    $ git clone git://github.com/linkhub-sdk/linkhub.py.git
+    $ cd linkhub.py
+    $ python setup.py install
