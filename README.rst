@@ -12,7 +12,7 @@ linkhub 1.0.0
 Installation
 ************
 
-Install via `pip`_:
+Install via pip:
 
 ::
 
