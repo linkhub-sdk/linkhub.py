@@ -104,7 +104,7 @@ class Utils:
 
     @staticmethod
     def b64_hmac_sha1(keyString,targetString):
-        return base64.b64encode(hmac.new(base64.b64decode(keyString),targetString.encode('utf-8'),sha1).digest()).decode().rstrip('\n')
+        return base64.b64encode(hmac.new(base64.b64decode(keyString.encode('utf-8')),targetString.encode('utf-8'),sha1).digest()).decode().rstrip('\n')
     
     @staticmethod
     def _json_object_hook(d): return namedtuple('X', d.keys())(*d.values())
