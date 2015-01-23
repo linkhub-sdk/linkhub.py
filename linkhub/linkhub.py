@@ -11,7 +11,6 @@ import io
 from hashlib import sha1
 from hashlib import md5
 import hmac
-import json
 from collections import namedtuple
 
 LINKHUB_ServiceURL = "auth.linkhub.co.kr"
@@ -22,6 +21,7 @@ def __with_metaclass(meta, *bases):
         def __new__(cls, name, this_bases, d):
             return meta(name, bases, d)
     return type.__new__(metaclass, 'temporary_class', (), {})
+
 
 class Singleton(type):
     _instances = {}
@@ -39,6 +39,7 @@ class Token(__with_metaclass(Singleton)):
         callDT = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
         uri = '/' + ServiceID + '/Token'
         
+        #Ugly Code.. StringIO is better but, for compatibility.... need to enhance.
         hmacTarget = ""
         hmacTarget += "POST\n"
         hmacTarget += Utils.b64_md5(postData) + "\n"
@@ -89,20 +90,25 @@ class Token(__with_metaclass(Singleton)):
         else:
             return float(Utils.json2obj(responseString).remainPoint)
 
+
 class LinkhubException(Exception):
     def __init__(self,code,message):
         self.code = code
         self.message = message
 
+
 class Utils:
     @staticmethod
     def b64_md5(input):
         return base64.b64encode(md5(input.encode('utf-8')).digest()).decode()
+
     @staticmethod
     def b64_hmac_sha1(keyString,targetString):
         return base64.b64encode(hmac.new(base64.b64decode(keyString),targetString.encode('utf-8'),sha1).digest()).decode().rstrip('\n')
+    
     @staticmethod
     def _json_object_hook(d): return namedtuple('X', d.keys())(*d.values())
+    
     @staticmethod
     def json2obj(data): 
         if(type(data) is bytes): data = data.decode()
