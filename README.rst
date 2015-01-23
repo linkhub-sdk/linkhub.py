@@ -7,7 +7,7 @@ linkhub 1.0.0
 
 * requirements
  
-  * Python 2.5+
+  * Python 2.6+
 
 ************
 Installation
