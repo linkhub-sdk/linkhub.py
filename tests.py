@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
-# code for console Encoding difference. Dont' mind on it 
-import unittest
+# code for console Encoding difference. Dont' mind on it
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 import sys
 import imp
 imp.reload(sys)
@@ -13,7 +16,7 @@ from linkhub import LinkhubException
 class LinkhubTokenTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.token =  linkhub.generateToken('TESTER','KeA10mdmFeU+WqdWacAb0D6wqYsB8ss6pluoax0aT2I=','POPBILL_TEST','1231212312',['member','110'])
+        self.token =  linkhub.generateToken('TESTER','ut8QMlWBgUYLCgvHqit0rmPdyBPNeWUziQLT0osDvXQ=','POPBILL_TEST','1231212312',['member','110'])
 
     def test_checkToken(self):
         self.assertEqual(self.token.serviceID,"POPBILL_TEST","서비스아이디 불일치")
