@@ -8,4 +8,4 @@ python:
 install: 
   - "pip install unittest2"
   - "pip install tox"
-script: tox
+script: python tests.py
