@@ -44,7 +44,7 @@ class Token(__with_metaclass(Singleton)):
         self.__timeOut = timeOut
         # self.__conn = httpclient.HTTPSConnection(LINKHUB_ServiceURL);
 
-    def __getconn(self):
+    def _getconn(self):
         if stime() - self.__connectedAt >= self.__timeOut or self.__conn == None:
             self.__conn = httpclient.HTTPSConnection(LINKHUB_ServiceURL)
             self.__connectedAt = stime()
@@ -80,7 +80,7 @@ class Token(__with_metaclass(Singleton)):
         headers['Authorization'] = 'LINKHUB ' + LinkID + ' ' + hmac
         headers['Content-Type'] = 'Application/json'
 
-        conn = self.__getconn()
+        conn = self._getconn()
 
         conn.request('POST', uri, postData, headers)
 
@@ -94,7 +94,7 @@ class Token(__with_metaclass(Singleton)):
             return Utils.json2obj(responseString)
 
     def balance(self, Token):
-        conn = self.__getconn()
+        conn = self._getconn()
 
         conn.request('GET', '/' + Token.serviceID + '/Point', '', {'Authorization': 'Bearer ' + Token.session_token})
 
@@ -108,7 +108,7 @@ class Token(__with_metaclass(Singleton)):
             return float(Utils.json2obj(responseString).remainPoint)
 
     def partnerBalance(self, Token):
-        conn = self.__getconn()
+        conn = self._getconn()
 
         conn.request('GET', '/' + Token.serviceID + '/PartnerPoint', '',
                      {'Authorization': 'Bearer ' + Token.session_token})
