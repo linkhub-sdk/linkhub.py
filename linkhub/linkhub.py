@@ -9,6 +9,7 @@ try:
 except ImportError:
     import httplib as httpclient
 import io
+from time import time as stime
 from cStringIO import StringIO
 from hashlib import sha1
 from hashlib import md5
@@ -37,13 +38,16 @@ class Singleton(type):
 
 
 class Token(__with_metaclass(Singleton)):
-    def __init__(self):
+    def __init__(self, timeOut = 15):
         self.__conn = None
+        self.__connectedAt = stime()
+        self.__timeOut = timeOut
         # self.__conn = httpclient.HTTPSConnection(LINKHUB_ServiceURL);
 
     def __getconn(self):
-        if self.__conn == None:
+        if stime() - self.__connectedAt >= self.__timeOut or self.__conn == None:
             self.__conn = httpclient.HTTPSConnection(LINKHUB_ServiceURL)
+            self.__connectedAt = stime()
             return self.__conn
         else:
             try:
@@ -52,6 +56,7 @@ class Token(__with_metaclass(Singleton)):
                 _ = res.read()
             except httpclient.HTTPException:
                 self.__conn = httpclient.HTTPSConnection(LINKHUB_ServiceURL)
+                self.__connectedAt = stime()
                 return self.__conn
             return self.__conn
 
