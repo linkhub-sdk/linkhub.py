@@ -1,4 +1,4 @@
-__version__ = '1.0.1'
+__version__ = '1.0.2'
 Version = __version__  # for backward compatibility
 __all__ = ["Token","LinkhubException"]
 from .linkhub import Token, LinkhubException
@@ -13,3 +13,6 @@ def getBalance(_Token):
 
 def getPartnerBalance(_Token):
     return TokenInstance.partnerBalance(_Token)
+
+def getTime():
+    return TokenInstance.getTime()

@@ -38,7 +38,7 @@ class Token(__with_metaclass(Singleton)):
         self.__conn = httpclient.HTTPSConnection(LINKHUB_ServiceURL);
         self.__connectedAt = stime()
         self.__timeOut = timeOut
-    
+
     def _getconn(self):
         if stime() - self.__connectedAt >= self.__timeOut or self.__conn == None:
             self.__conn = httpclient.HTTPSConnection(LINKHUB_ServiceURL)
@@ -49,9 +49,9 @@ class Token(__with_metaclass(Singleton)):
 
     def get(self,LinkID,SecretKey,ServiceID,AccessID,Scope,forwardIP = None):
         postData = json.dumps({"access_id" : AccessID , "scope" : Scope})
-        callDT = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        callDT = self.getTime()
         uri = '/' + ServiceID + '/Token'
-        
+
         #Ugly Code.. StringIO is better but, for compatibility.... need to enhance.
         hmacTarget = ""
         hmacTarget += "POST\n"
@@ -62,12 +62,12 @@ class Token(__with_metaclass(Singleton)):
         hmacTarget += uri
 
         hmac = Utils.b64_hmac_sha1(SecretKey,hmacTarget)
-        
+
         headers = {'x-lh-date':callDT , 'x-lh-version':LINKHUB_APIVersion}
         if forwardIP != None : headers['x-lh-forwarded'] = forwardIP
         headers['Authorization'] = 'LINKHUB ' + LinkID + ' ' + hmac
         headers['Content-Type'] = 'Application/json'
-	
+
         conn = self._getconn()
 
         conn.request('POST',uri,postData,headers)
@@ -85,7 +85,7 @@ class Token(__with_metaclass(Singleton)):
         conn = self._getconn()
 
         conn.request('GET','/' + Token.serviceID + '/Point','',{'Authorization':'Bearer ' + Token.session_token})
-    
+
         response = conn.getresponse()
         responseString = response.read()
 
@@ -99,7 +99,7 @@ class Token(__with_metaclass(Singleton)):
         conn = self._getconn()
 
         conn.request('GET','/' + Token.serviceID + '/PartnerPoint','',{'Authorization':'Bearer ' + Token.session_token})
-    
+
         response = conn.getresponse()
         responseString = response.read()
 
@@ -109,6 +109,19 @@ class Token(__with_metaclass(Singleton)):
         else:
             return float(Utils.json2obj(responseString).remainPoint)
 
+    def getTime(self):
+        conn = self._getconn()
+
+        conn.request('GET','/Time')
+
+        response = conn.getresponse()
+        responseString = response.read()
+
+        if response.status != 200 :
+            err = Utils.json2obj(responseString)
+            raise LinkhubException(int(err.code),err.message)
+        else:
+            return responseString
 
 class LinkhubException(Exception):
     def __init__(self,code,message):
@@ -124,11 +137,11 @@ class Utils:
     @staticmethod
     def b64_hmac_sha1(keyString,targetString):
         return base64.b64encode(hmac.new(base64.b64decode(keyString.encode('utf-8')),targetString.encode('utf-8'),sha1).digest()).decode().rstrip('\n')
-    
+
     @staticmethod
     def _json_object_hook(d): return namedtuple('X', d.keys())(*d.values())
-    
+
     @staticmethod
-    def json2obj(data): 
+    def json2obj(data):
         if(type(data) is bytes): data = data.decode()
         return json.loads(data, object_hook=Utils._json_object_hook)

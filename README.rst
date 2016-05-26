@@ -1,15 +1,15 @@
 ####
 linkhub.py
 ####
-linkhub 1.0.1
+linkhub 1.0.2
 
 링크인증 API for Python.
 
 .. image:: https://api.travis-ci.org/linkhub-sdk/linkhub.py.svg?branch=master
         :target: https://travis-ci.org/linkhub-sdk/linkhub.py
-        
+
 * requirements
- 
+
   * Python 2.6+
 
 ************
