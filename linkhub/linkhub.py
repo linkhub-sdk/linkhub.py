@@ -3,11 +3,13 @@ import sys
 import json
 import datetime
 import base64
+
 try:
     import http.client as httpclient
 except ImportError:
     import httplib as httpclient
 import io
+from time import time as stime
 from hashlib import sha1
 from hashlib import md5
 import hmac
@@ -15,6 +17,7 @@ from collections import namedtuple
 
 LINKHUB_ServiceURL = "auth.linkhub.co.kr"
 LINKHUB_APIVersion = "1.0"
+
 
 def __with_metaclass(meta, *bases):
     class metaclass(meta):
@@ -31,8 +34,18 @@ class Singleton(type):
         return cls._instances[cls]
 
 class Token(__with_metaclass(Singleton)):
-    def __init__(self):
+    def __init__(self,timeOut = 15):
         self.__conn = httpclient.HTTPSConnection(LINKHUB_ServiceURL);
+        self.__connectedAt = stime()
+        self.__timeOut = timeOut
+    
+    def _getconn(self):
+        if stime() - self.__connectedAt >= self.__timeOut or self.__conn == None:
+            self.__conn = httpclient.HTTPSConnection(LINKHUB_ServiceURL)
+            self.__connectedAt = stime()
+            return self.__conn
+        else:
+            return self.__conn
 
     def get(self,LinkID,SecretKey,ServiceID,AccessID,Scope,forwardIP = None):
         postData = json.dumps({"access_id" : AccessID , "scope" : Scope})
@@ -54,22 +67,26 @@ class Token(__with_metaclass(Singleton)):
         if forwardIP != None : headers['x-lh-forwarded'] = forwardIP
         headers['Authorization'] = 'LINKHUB ' + LinkID + ' ' + hmac
         headers['Content-Type'] = 'Application/json'
+	
+        conn = self._getconn()
 
-        self.__conn.request('POST',uri,postData,headers)
+        conn.request('POST',uri,postData,headers)
 
-        response = self.__conn.getresponse()
+        response = conn.getresponse()
         responseString = response.read()
 
-        if response.status != 200 :
+        if response.status != 200:
             err = Utils.json2obj(responseString)
-            raise LinkhubException(int(err.code),err.message)
+            raise LinkhubException(int(err.code), err.message)
         else:
             return Utils.json2obj(responseString)
 
     def balance(self,Token):
-        self.__conn.request('GET','/' + Token.serviceID + '/Point','',{'Authorization':'Bearer ' + Token.session_token})
+        conn = self._getconn()
+
+        conn.request('GET','/' + Token.serviceID + '/Point','',{'Authorization':'Bearer ' + Token.session_token})
     
-        response = self.__conn.getresponse()
+        response = conn.getresponse()
         responseString = response.read()
 
         if response.status != 200 :
@@ -79,9 +96,11 @@ class Token(__with_metaclass(Singleton)):
             return float(Utils.json2obj(responseString).remainPoint)
 
     def partnerBalance(self,Token):
-        self.__conn.request('GET','/' + Token.serviceID + '/PartnerPoint','',{'Authorization':'Bearer ' + Token.session_token})
+        conn = self._getconn()
+
+        conn.request('GET','/' + Token.serviceID + '/PartnerPoint','',{'Authorization':'Bearer ' + Token.session_token})
     
-        response = self.__conn.getresponse()
+        response = conn.getresponse()
         responseString = response.read()
 
         if response.status != 200 :
