@@ -10,7 +10,7 @@ except ImportError:
     import httplib as httpclient
 import io
 from time import time as stime
-from cStringIO import StringIO
+# from cStringIO import StringIO
 from hashlib import sha1
 from hashlib import md5
 import hmac
@@ -65,15 +65,15 @@ class Token(__with_metaclass(Singleton)):
         callDT = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
         uri = '/' + ServiceID + '/Token'
 
-        hmacTarget = StringIO()
-        hmacTarget.write("POST\n")
-        hmacTarget.write(Utils.b64_md5(postData) + "\n")
-        hmacTarget.write(callDT + "\n")
+        hmacTarget = []
+        hmacTarget.append("POST\n")
+        hmacTarget.append(Utils.b64_md5(postData) + "\n")
+        hmacTarget.append(callDT + "\n")
         if forwardIP != None: hmacTarget.write(forwardIP + "\n")
-        hmacTarget.write(LINKHUB_APIVersion + "\n")
-        hmacTarget.write(uri)
+        hmacTarget.append(LINKHUB_APIVersion + "\n")
+        hmacTarget.append(uri)
 
-        hmac = Utils.b64_hmac_sha1(SecretKey, hmacTarget.getvalue())
+        hmac = Utils.b64_hmac_sha1(SecretKey, "".join(hmacTarget))
 
         headers = {'x-lh-date': callDT, 'x-lh-version': LINKHUB_APIVersion}
         if forwardIP != None: headers['x-lh-forwarded'] = forwardIP
