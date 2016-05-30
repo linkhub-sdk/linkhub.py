@@ -69,7 +69,7 @@ class Token(__with_metaclass(Singleton)):
         hmacTarget.append("POST\n")
         hmacTarget.append(Utils.b64_md5(postData) + "\n")
         hmacTarget.append(callDT + "\n")
-        if forwardIP != None: hmacTarget.write(forwardIP + "\n")
+        if forwardIP != None: hmacTarget.append(forwardIP + "\n")
         hmacTarget.append(LINKHUB_APIVersion + "\n")
         hmacTarget.append(uri)
 
