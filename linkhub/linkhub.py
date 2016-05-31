@@ -34,7 +34,7 @@ class Singleton(type):
         return cls._instances[cls]
 
 class Token(__with_metaclass(Singleton)):
-    def __init__(self,timeOut = 15):
+    def __init__(self,timeOut = 60):
         self.__conn = httpclient.HTTPSConnection(LINKHUB_ServiceURL);
         self.__connectedAt = stime()
         self.__timeOut = timeOut
