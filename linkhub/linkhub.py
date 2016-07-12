@@ -121,7 +121,7 @@ class Token(__with_metaclass(Singleton)):
             err = Utils.json2obj(responseString)
             raise LinkhubException(int(err.code),err.message)
         else:
-            return responseString
+            return responseString.decode('utf-8')
 
 class LinkhubException(Exception):
     def __init__(self,code,message):

@@ -1,4 +1,4 @@
-__version__ = '1.0.2'
+__version__ = '1.0.3'
 Version = __version__  # for backward compatibility
 __all__ = ["Token","LinkhubException"]
 from .linkhub import Token, LinkhubException
