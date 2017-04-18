@@ -34,13 +34,13 @@ class Singleton(type):
         return cls._instances[cls]
 
 class Token(__with_metaclass(Singleton)):
-    def __init__(self,timeOut = 15):
+    def __init__(self,timeOut = 60):
         self.__conn = httpclient.HTTPSConnection(LINKHUB_ServiceURL);
         self.__connectedAt = stime()
         self.__timeOut = timeOut
 
-    def _getconn(self):
-        if stime() - self.__connectedAt >= self.__timeOut or self.__conn == None:
+    def _getConn(self, ForceReconnect=False):
+        if ForceReconnect or self.__conn == None or stime() - self.__connectedAt >= self.__timeOut:
             self.__conn = httpclient.HTTPSConnection(LINKHUB_ServiceURL)
             self.__connectedAt = stime()
             return self.__conn
@@ -52,28 +52,48 @@ class Token(__with_metaclass(Singleton)):
         callDT = self.getTime()
         uri = '/' + ServiceID + '/Token'
 
-        #Ugly Code.. StringIO is better but, for compatibility.... need to enhance.
-        hmacTarget = ""
-        hmacTarget += "POST\n"
-        hmacTarget += Utils.b64_md5(postData) + "\n"
-        hmacTarget += callDT + "\n"
-        if forwardIP != None : hmacTarget += forwardIP + "\n"
-        hmacTarget += LINKHUB_APIVersion + "\n"
-        hmacTarget += uri
+        # Ugly Code.. StringIO is better but, for compatibility.... need to enhance.
 
-        hmac = Utils.b64_hmac_sha1(SecretKey,hmacTarget)
+        # I suggest this strategy "Build a list of strings, then join it"
+        # it's efficient and easy to implement.
+        hmacTarget = []
+        hmacTarget.append("POST\n")
+        hmacTarget.append(Utils.b64_md5(postData) + "\n")
+        hmacTarget.append(callDT + "\n")
+        if forwardIP != None : hmacTarget.append(forwardIP + "\n")
+        hmacTarget.append(LINKHUB_APIVersion + "\n")
+        hmacTarget.append(uri)
+
+        hmac = Utils.b64_hmac_sha1(SecretKey,"".join(hmacTarget))
 
         headers = {'x-lh-date':callDT , 'x-lh-version':LINKHUB_APIVersion}
         if forwardIP != None : headers['x-lh-forwarded'] = forwardIP
         headers['Authorization'] = 'LINKHUB ' + LinkID + ' ' + hmac
         headers['Content-Type'] = 'Application/json'
 
-        conn = self._getconn()
+        # SEH 의 EXCEPTION_EXECUTE_HANDLER 를 모방해서, 한번의 실패에 한해 강제 재연결을 수행한다.
+        # 그 후에 발생하는 에러에 대해서는 그냥 예외처리한다.
+        for i in range(2):
+            try:
+                conn = self._getConn()
+                conn.request('POST', uri, postData, headers)
 
-        conn.request('POST',uri,postData,headers)
-
-        response = conn.getresponse()
-        responseString = response.read()
+                response = conn.getresponse()
+                responseString = response.read()
+                break
+            except httpclient.HTTPException:
+                if i == 0:
+                    # 처음 예외가 발생했을 경우는 재연결을 시도한다.
+                    try:
+                        self._getConn(ForceReconnect=True)
+                        continue
+                    except Exception:
+                        # 재연결에서 어떤 에러가 발생한다면?
+                        # 처리할 수 없는 상황, 아마도 서버에의 초기 연결이 실패한경우
+                        raise LinkhubException(int(-99999999), 'UNEXPECTED EXCEPTION')
+                else:
+                    # 이미 한번 예외 처리를 했음에도 불구하고 에러가 난 경우.
+                    raise LinkhubException(int(-99999999), 'UNEXPECTED EXCEPTION')
 
         if response.status != 200:
             err = Utils.json2obj(responseString)
@@ -82,12 +102,30 @@ class Token(__with_metaclass(Singleton)):
             return Utils.json2obj(responseString)
 
     def balance(self,Token):
-        conn = self._getconn()
+        # SEH 의 EXCEPTION_EXECUTE_HANDLER 를 모방해서, 한번의 실패에 한해 강제 재연결을 수행한다.
+        # 그 후에 발생하는 에러에 대해서는 그냥 예외처리한다.
+        for i in range(2):
+            try:
+                conn = self._getConn()
+                conn.request('GET', '/' + Token.serviceID + '/Point', '',
+                             {'Authorization': 'Bearer ' + Token.session_token})
 
-        conn.request('GET','/' + Token.serviceID + '/Point','',{'Authorization':'Bearer ' + Token.session_token})
-
-        response = conn.getresponse()
-        responseString = response.read()
+                response = conn.getresponse()
+                responseString = response.read()
+                break
+            except httpclient.HTTPException:
+                if i == 0:
+                    # 처음 예외가 발생했을 경우는 재연결을 시도한다.
+                    try:
+                        self._getConn(ForceReconnect=True)
+                        continue
+                    except Exception:
+                        # 재연결에서 어떤 에러가 발생한다면?
+                        # 처리할 수 없는 상황, 아마도 서버에의 초기 연결이 실패한경우
+                        raise LinkhubException(int(-99999999), 'UNEXPECTED EXCEPTION')
+                else:
+                    # 이미 한번 예외 처리를 했음에도 불구하고 에러가 난 경우.
+                    raise LinkhubException(int(-99999999), 'UNEXPECTED EXCEPTION')
 
         if response.status != 200 :
             err = Utils.json2obj(responseString)
@@ -96,12 +134,30 @@ class Token(__with_metaclass(Singleton)):
             return float(Utils.json2obj(responseString).remainPoint)
 
     def partnerBalance(self,Token):
-        conn = self._getconn()
+        # SEH 의 EXCEPTION_EXECUTE_HANDLER 를 모방해서, 한번의 실패에 한해 강제 재연결을 수행한다.
+        # 그 후에 발생하는 에러에 대해서는 그냥 예외처리한다.
+        for i in range(2):
+            try:
+                conn = self._getConn()
+                conn.request('GET', '/' + Token.serviceID + '/PartnerPoint', '',
+                             {'Authorization': 'Bearer ' + Token.session_token})
 
-        conn.request('GET','/' + Token.serviceID + '/PartnerPoint','',{'Authorization':'Bearer ' + Token.session_token})
-
-        response = conn.getresponse()
-        responseString = response.read()
+                response = conn.getresponse()
+                responseString = response.read()
+                break
+            except httpclient.HTTPException:
+                if i == 0:
+                    # 처음 예외가 발생했을 경우는 재연결을 시도한다.
+                    try:
+                        self._getConn(ForceReconnect=True)
+                        continue
+                    except Exception:
+                        # 재연결에서 어떤 에러가 발생한다면?
+                        # 처리할 수 없는 상황, 아마도 서버에의 초기 연결이 실패한경우
+                        raise LinkhubException(int(-99999999), 'UNEXPECTED EXCEPTION')
+                else:
+                    # 이미 한번 예외 처리를 했음에도 불구하고 에러가 난 경우.
+                    raise LinkhubException(int(-99999999), 'UNEXPECTED EXCEPTION')
 
         if response.status != 200 :
             err = Utils.json2obj(responseString)
@@ -110,12 +166,29 @@ class Token(__with_metaclass(Singleton)):
             return float(Utils.json2obj(responseString).remainPoint)
 
     def getTime(self):
-        conn = self._getconn()
+        # SEH 의 EXCEPTION_EXECUTE_HANDLER 를 모방해서, 한번의 실패에 한해 강제 재연결을 수행한다.
+        # 그 후에 발생하는 에러에 대해서는 그냥 예외처리한다.
+        for i in range(2):
+            try:
+                conn = self._getConn()
+                conn.request('GET', '/Time')
 
-        conn.request('GET','/Time')
-
-        response = conn.getresponse()
-        responseString = response.read()
+                response = conn.getresponse()
+                responseString = response.read()
+                break
+            except httpclient.HTTPException:
+                if i == 0:
+                    # 처음 예외가 발생했을 경우는 재연결을 시도한다.
+                    try:
+                        self._getConn(ForceReconnect=True)
+                        continue
+                    except Exception:
+                        # 재연결에서 어떤 에러가 발생한다면?
+                        # 처리할 수 없는 상황, 아마도 서버에의 초기 연결이 실패한경우
+                        raise LinkhubException(int(-99999999), 'UNEXPECTED EXCEPTION')
+                else:
+                    # 이미 한번 예외 처리를 했음에도 불구하고 에러가 난 경우.
+                    raise LinkhubException(int(-99999999), 'UNEXPECTED EXCEPTION')
 
         if response.status != 200 :
             err = Utils.json2obj(responseString)
