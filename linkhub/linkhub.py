@@ -109,6 +109,21 @@ class Token(__with_metaclass(Singleton)):
         else:
             return float(Utils.json2obj(responseString).remainPoint)
 
+    # 파트너 포인트충전 팝업 URL 추가 - 2017/08/29
+    def getPartnerURL(self,Token,TOGO):
+        conn = self._getconn()
+
+        conn.request('GET','/' + Token.serviceID + '/URL?TG='+TOGO,'',{'Authorization':'Bearer ' + Token.session_token})
+
+        response = conn.getresponse()
+        responseString = response.read()
+
+        if response.status != 200 :
+            err = Utils.json2obj(responseString)
+            raise LinkhubException(int(err.code),err.message)
+        else:
+            return Utils.json2obj(responseString).url
+
     def getTime(self):
         conn = self._getconn()
 

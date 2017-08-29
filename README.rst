@@ -1,7 +1,7 @@
 ####
 linkhub.py
 ####
-linkhub 1.0.3
+linkhub 1.1.0
 
 링크인증 API for Python.
 

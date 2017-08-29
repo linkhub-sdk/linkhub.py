@@ -16,7 +16,7 @@ from linkhub import LinkhubException
 class LinkhubTokenTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.token =  linkhub.generateToken('TESTER','SwWxqU+0TErBXy/9TVjIPEnI0VTUMMSQZtJf3Ed8q3I=','POPBILL_TEST','1231212312',['member','110'])
+        self.token =  linkhub.generateToken('TESTER','SwWxqU+0TErBXy/9TVjIPEnI0VTUMMSQZtJf3Ed8q3I=','POPBILL_TEST','1234567890',['member','110'])
 
     def test_checkToken(self):
         self.assertEqual(self.token.serviceID,"POPBILL_TEST","서비스아이디 불일치")
@@ -32,6 +32,10 @@ class LinkhubTokenTestCase(unittest.TestCase):
     def test_getTime(self):
         time = linkhub.getTime()
         print(time)
+
+    def test_getPartnerURL(self):
+        url = linkhub.getPartnerURL(self.token, "CHRG")
+        print url
 
 if __name__ == '__main__':
     unittest.main()
