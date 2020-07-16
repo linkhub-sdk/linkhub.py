@@ -16,25 +16,25 @@ from linkhub import LinkhubException
 class LinkhubTokenTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.token =  linkhub.generateToken('TESTER','SwWxqU+0TErBXy/9TVjIPEnI0VTUMMSQZtJf3Ed8q3I=','POPBILL_TEST','1234567890',['member','110'])
+        self.token =  linkhub.generateToken('TESTER','SwWxqU+0TErBXy/9TVjIPEnI0VTUMMSQZtJf3Ed8q3I=','POPBILL_TEST','1234567890',['member','110'], "", True)
 
     def test_checkToken(self):
         self.assertEqual(self.token.serviceID,"POPBILL_TEST","서비스아이디 불일치")
 
     def test_getBalance(self):
-        balance = linkhub.getBalance(self.token)
+        balance = linkhub.getBalance(self.token,True)
         self.assertGreaterEqual(balance,0,'잔액 0 이상.')
 
     def test_getPartnerBalance(self):
-        balance = linkhub.getPartnerBalance(self.token)
+        balance = linkhub.getPartnerBalance(self.token,True)
         self.assertGreaterEqual(balance,0,'잔액 0 이상.')
 
     def test_getTime(self):
-        time = linkhub.getTime()
+        time = linkhub.getTime(True)
         print(time)
 
     def test_getPartnerURL(self):
-        url = linkhub.getPartnerURL(self.token, "CHRG")
+        url = linkhub.getPartnerURL(self.token, "CHRG",True)
         print url
 
 if __name__ == '__main__':
