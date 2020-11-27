@@ -152,7 +152,11 @@ class Utils:
 
     @staticmethod
     def b64_hmac_sha1(keyString,targetString):
-        return base64.b64encode(hmac.new(base64.b64decode(keyString.encode('utf-8')),targetString.encode('utf-8'),sha1).digest()).decode().rstrip('\n')
+        key_string = keyString.encode('utf-8')
+        padded_key_string = key_string + b'=' * (-len(key_string) % 4)
+        return base64.b64encode(
+            hmac.new(base64.b64decode(padded_key_string), targetString.encode('utf-8'), sha1).digest()
+        ).decode().rstrip('\n')
 
     @staticmethod
     def _json_object_hook(d): return namedtuple('X', d.keys())(*d.values())
