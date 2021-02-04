@@ -34,8 +34,12 @@ class LinkhubTokenTestCase(unittest.TestCase):
         print(time)
 
     def test_getPartnerURL(self):
-        url = linkhub.getPartnerURL(self.token, "CHRG",True)
-        print url
+        try :
+            url = linkhub.getPartnerURL(self.token, "CHRG",True)
+            print url
+        except Exception as e :
+            print(e.code)
+            print(e.message)
 
 if __name__ == '__main__':
     unittest.main()
