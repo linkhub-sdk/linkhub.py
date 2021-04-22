@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys
 import json
-import datetime
 import base64
 
 try:
@@ -10,14 +9,14 @@ except ImportError:
     import httplib as httpclient
 import io
 from time import time as stime
-from hashlib import sha1
-from hashlib import md5
+from datetime import datetime
+from hashlib import sha256
 import hmac
 from collections import namedtuple
 
 LINKHUB_ServiceURL = "auth.linkhub.co.kr"
 LINKHUB_ServiceURL_GA = "ga-auth.linkhub.co.kr"
-LINKHUB_APIVersion = "1.0"
+LINKHUB_APIVersion = "2.0"
 
 
 def __with_metaclass(meta, *bases):
@@ -48,22 +47,22 @@ class Token(__with_metaclass(Singleton)):
         self.__connectedAt = stime()
         return self.__conn
 
-    def get(self,LinkID,SecretKey,ServiceID,AccessID,Scope,forwardIP = None,UseStaticIP=False):
-        postData = json.dumps({"access_id" : AccessID , "scope" : Scope})
-        callDT = self.getTime(UseStaticIP)
+    def get(self, LinkID, SecretKey, ServiceID, AccessID, Scope, forwardIP=None, UseStaticIP=False, UseLocalTimeYN=True):
+        postData = json.dumps({"access_id": AccessID , "scope" : Scope})
+        callDT = self.getTime(UseStaticIP, UseLocalTimeYN)
         uri = '/' + ServiceID + '/Token'
 
         #Ugly Code.. StringIO is better but, for compatibility.... need to enhance.
         hmacTarget = ""
         hmacTarget += "POST\n"
-        hmacTarget += Utils.b64_md5(postData) + "\n"
+        hmacTarget += Utils.b64_sha256(postData) + "\n"
         hmacTarget += callDT + "\n"
         if forwardIP != None : hmacTarget += forwardIP + "\n"
         hmacTarget += LINKHUB_APIVersion + "\n"
         hmacTarget += uri
-
-        hmac = Utils.b64_hmac_sha1(SecretKey,hmacTarget)
-
+        print(hmacTarget)
+        hmac = Utils.b64_hmac_sha256(SecretKey, hmacTarget)
+        print(hmac)
         headers = {'x-lh-date':callDT , 'x-lh-version':LINKHUB_APIVersion}
         if forwardIP != None : headers['x-lh-forwarded'] = forwardIP
         headers['Authorization'] = 'LINKHUB ' + LinkID + ' ' + hmac
@@ -71,7 +70,7 @@ class Token(__with_metaclass(Singleton)):
 
         conn = self._getconn(UseStaticIP)
 
-        conn.request('POST',uri,postData,headers)
+        conn.request('POST', uri, postData, headers)
 
         response = conn.getresponse()
         responseString = response.read()
@@ -82,7 +81,7 @@ class Token(__with_metaclass(Singleton)):
         else:
             return Utils.json2obj(responseString)
 
-    def balance(self,Token,UseStaticIP=False):
+    def balance(self, Token, UseStaticIP=False):
         conn = self._getconn(UseStaticIP)
 
         conn.request('GET','/' + Token.serviceID + '/Point','',{'Authorization':'Bearer ' + Token.session_token})
@@ -92,11 +91,11 @@ class Token(__with_metaclass(Singleton)):
 
         if response.status != 200 :
             err = Utils.json2obj(responseString)
-            raise LinkhubException(int(err.code),err.message)
+            raise LinkhubException(int(err.code), err.message)
         else:
             return float(Utils.json2obj(responseString).remainPoint)
 
-    def partnerBalance(self,Token,UseStaticIP=False):
+    def partnerBalance(self, Token, UseStaticIP=False):
         conn = self._getconn(UseStaticIP)
 
         conn.request('GET','/' + Token.serviceID + '/PartnerPoint','',{'Authorization':'Bearer ' + Token.session_token})
@@ -106,53 +105,56 @@ class Token(__with_metaclass(Singleton)):
 
         if response.status != 200 :
             err = Utils.json2obj(responseString)
-            raise LinkhubException(int(err.code),err.message)
+            raise LinkhubException(int(err.code), err.message)
         else:
             return float(Utils.json2obj(responseString).remainPoint)
 
     # 파트너 포인트충전 팝업 URL 추가 - 2017/08/29
-    def getPartnerURL(self,Token,TOGO,UseStaticIP=False):
+    def getPartnerURL(self, Token, TOGO, UseStaticIP=False):
         conn = self._getconn(UseStaticIP)
 
-        conn.request('GET','/' + Token.serviceID + '/URL?TG='+TOGO,'',{'Authorization':'Bearer ' + Token.session_token})
+        conn.request('GET','/' + Token.serviceID + '/URL?TG='+TOGO,'', {'Authorization':'Bearer ' + Token.session_token})
 
         response = conn.getresponse()
         responseString = response.read()
 
         if response.status != 200 :
             err = Utils.json2obj(responseString)
-            raise LinkhubException(int(err.code),err.message)
+            raise LinkhubException(int(err.code), err.message)
         else:
             return Utils.json2obj(responseString).url
 
-    def getTime(self,UseStaticIP=False):
+    def getTime(self, UseStaticIP=False, UseLocalTimeYN=True):
+        if(UseLocalTimeYN == True):
+            return datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+
         conn = self._getconn(UseStaticIP)
 
-        conn.request('GET','/Time')
+        conn.request('GET', '/Time')
 
         response = conn.getresponse()
         responseString = response.read()
 
         if response.status != 200 :
             err = Utils.json2obj(responseString)
-            raise LinkhubException(int(err.code),err.message)
+            raise LinkhubException(int(err.code), err.message)
         else:
             return responseString.decode('utf-8')
 
 class LinkhubException(Exception):
-    def __init__(self,code,message):
+    def __init__(self, code, message):
         self.code = code
         self.message = message
 
 
 class Utils:
     @staticmethod
-    def b64_md5(input):
-        return base64.b64encode(md5(input.encode('utf-8')).digest()).decode()
+    def b64_sha256(input):
+        return base64.b64encode(sha256(input.encode('utf-8')).digest()).decode()
 
     @staticmethod
-    def b64_hmac_sha1(keyString,targetString):
-        return base64.b64encode(hmac.new(base64.b64decode(keyString.encode('utf-8')),targetString.encode('utf-8'),sha1).digest()).decode().rstrip('\n')
+    def b64_hmac_sha256(keyString, targetString):
+        return base64.b64encode(hmac.new(base64.b64decode(keyString.encode('utf-8')), targetString.encode('utf-8'), sha256).digest()).decode().rstrip('\n')
 
     @staticmethod
     def _json_object_hook(d): return namedtuple('X', d.keys())(*d.values())
