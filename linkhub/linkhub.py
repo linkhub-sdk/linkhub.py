@@ -60,9 +60,9 @@ class Token(__with_metaclass(Singleton)):
         if forwardIP != None : hmacTarget += forwardIP + "\n"
         hmacTarget += LINKHUB_APIVersion + "\n"
         hmacTarget += uri
-        print(hmacTarget)
+
         hmac = Utils.b64_hmac_sha256(SecretKey, hmacTarget)
-        print(hmac)
+        
         headers = {'x-lh-date':callDT , 'x-lh-version':LINKHUB_APIVersion}
         if forwardIP != None : headers['x-lh-forwarded'] = forwardIP
         headers['Authorization'] = 'LINKHUB ' + LinkID + ' ' + hmac
