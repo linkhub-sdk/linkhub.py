@@ -62,7 +62,7 @@ class Token(__with_metaclass(Singleton)):
         hmacTarget += uri
 
         hmac = Utils.b64_hmac_sha256(SecretKey, hmacTarget)
-        
+
         headers = {'x-lh-date':callDT , 'x-lh-version':LINKHUB_APIVersion}
         if forwardIP != None : headers['x-lh-forwarded'] = forwardIP
         headers['Authorization'] = 'LINKHUB ' + LinkID + ' ' + hmac
@@ -150,11 +150,11 @@ class LinkhubException(Exception):
 class Utils:
     @staticmethod
     def b64_sha256(input):
-        return base64.b64encode(sha256(input.encode('utf-8')).digest()).decode()
+        return base64.b64encode(sha256(input.encode('utf-8')).digest()).decode('utf-8')
 
     @staticmethod
     def b64_hmac_sha256(keyString, targetString):
-        return base64.b64encode(hmac.new(base64.b64decode(keyString.encode('utf-8')), targetString.encode('utf-8'), sha256).digest()).decode().rstrip('\n')
+        return base64.b64encode(hmac.new(base64.b64decode(keyString.encode('utf-8')), targetString.encode('utf-8'), sha256).digest()).decode('utf-8').rstrip('\n')
 
     @staticmethod
     def _json_object_hook(d): return namedtuple('X', d.keys())(*d.values())
