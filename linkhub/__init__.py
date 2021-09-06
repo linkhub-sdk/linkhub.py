@@ -1,21 +1,21 @@
-__version__ = '1.3.1'
+__version__ = '1.4.0'
 Version = __version__  # for backward compatibility
 __all__ = ["Token","LinkhubException"]
 from .linkhub import Token, LinkhubException
 
 TokenInstance = Token()
 
-def generateToken(LinkID, SecretKey, ServiceID, AccessID, Scope, forwardIP = None, UseStaticIP=False, UseLocalTimeYN=True):
-    return TokenInstance.get(LinkID, SecretKey, ServiceID, AccessID, Scope, forwardIP, UseStaticIP, UseLocalTimeYN)
+def generateToken(LinkID, SecretKey, ServiceID, AccessID, Scope, forwardIP = None, UseStaticIP=False, UseLocalTimeYN=True, UseGAIP=False):
+    return TokenInstance.get(LinkID, SecretKey, ServiceID, AccessID, Scope, forwardIP, UseStaticIP, UseLocalTimeYN, UseGAIP)
 
-def getBalance(_Token, UseStaticIP=False):
-    return TokenInstance.balance(_Token, UseStaticIP)
+def getBalance(_Token, UseStaticIP=False, UseGAIP=False):
+    return TokenInstance.balance(_Token, UseStaticIP, UseGAIP)
 
-def getPartnerBalance(_Token, UseStaticIP=False):
-    return TokenInstance.partnerBalance(_Token, UseStaticIP)
+def getPartnerBalance(_Token, UseStaticIP=False, UseGAIP=False):
+    return TokenInstance.partnerBalance(_Token, UseStaticIP, UseGAIP)
 
-def getPartnerURL(_Token, TOGO, UseStaticIP=False):
-    return TokenInstance.getPartnerURL(_Token, TOGO, UseStaticIP)
+def getPartnerURL(_Token, TOGO, UseStaticIP=False, UseGAIP=False):
+    return TokenInstance.getPartnerURL(_Token, TOGO, UseStaticIP, UseGAIP)
 
-def getTime(UseStaticIP=False, UseLocalTimeYN=True):
-    return TokenInstance.getTime(UseStaticIP, UseLocalTimeYN)
+def getTime(UseStaticIP=False, UseLocalTimeYN=True, UseGAIP=False):
+    return TokenInstance.getTime(UseStaticIP, UseLocalTimeYN, UseGAIP)

@@ -15,6 +15,7 @@ import hmac
 from collections import namedtuple
 
 LINKHUB_ServiceURL = "auth.linkhub.co.kr"
+LINKHUB_ServiceURL_Static = "static-auth.linkhub.co.kr"
 LINKHUB_ServiceURL_GA = "ga-auth.linkhub.co.kr"
 LINKHUB_APIVersion = "2.0"
 
@@ -39,17 +40,23 @@ class Token(__with_metaclass(Singleton)):
         self.__connectedAt = stime()
         self.__timeOut = timeOut
 
-    def _getconn(self, UseStaticIP=False):
-        if(UseStaticIP) :
+    def _getconn(self, UseStaticIP=False, UseGAIP=False):
+        if(UseGAIP) :
             self.__conn = httpclient.HTTPSConnection(LINKHUB_ServiceURL_GA)
+            print('GA IP')
+        elif(UseStaticIP) :
+            self.__conn = httpclient.HTTPSConnection(LINKHUB_ServiceURL_Static)
+            print('Static IP')
         else :
             self.__conn = httpclient.HTTPSConnection(LINKHUB_ServiceURL)
+            print('Default IP')
         self.__connectedAt = stime()
+
         return self.__conn
 
-    def get(self, LinkID, SecretKey, ServiceID, AccessID, Scope, forwardIP=None, UseStaticIP=False, UseLocalTimeYN=True):
+    def get(self, LinkID, SecretKey, ServiceID, AccessID, Scope, forwardIP=None, UseStaticIP=False, UseLocalTimeYN=True, UseGAIP=False):
         postData = json.dumps({"access_id": AccessID , "scope" : Scope})
-        callDT = self.getTime(UseStaticIP, UseLocalTimeYN)
+        callDT = self.getTime(UseStaticIP, UseLocalTimeYN, UseGAIP)
         uri = '/' + ServiceID + '/Token'
 
         #Ugly Code.. StringIO is better but, for compatibility.... need to enhance.
@@ -68,7 +75,7 @@ class Token(__with_metaclass(Singleton)):
         headers['Authorization'] = 'LINKHUB ' + LinkID + ' ' + hmac
         headers['Content-Type'] = 'Application/json'
 
-        conn = self._getconn(UseStaticIP)
+        conn = self._getconn(UseStaticIP, UseGAIP)
 
         conn.request('POST', uri, postData, headers)
 
@@ -81,8 +88,8 @@ class Token(__with_metaclass(Singleton)):
         else:
             return Utils.json2obj(responseString)
 
-    def balance(self, Token, UseStaticIP=False):
-        conn = self._getconn(UseStaticIP)
+    def balance(self, Token, UseStaticIP=False, UseGAIP=False):
+        conn = self._getconn(UseStaticIP, UseGAIP)
 
         conn.request('GET','/' + Token.serviceID + '/Point','',{'Authorization':'Bearer ' + Token.session_token})
 
@@ -95,8 +102,8 @@ class Token(__with_metaclass(Singleton)):
         else:
             return float(Utils.json2obj(responseString).remainPoint)
 
-    def partnerBalance(self, Token, UseStaticIP=False):
-        conn = self._getconn(UseStaticIP)
+    def partnerBalance(self, Token, UseStaticIP=False, UseGAIP=False):
+        conn = self._getconn(UseStaticIP, UseGAIP)
 
         conn.request('GET','/' + Token.serviceID + '/PartnerPoint','',{'Authorization':'Bearer ' + Token.session_token})
 
@@ -110,8 +117,8 @@ class Token(__with_metaclass(Singleton)):
             return float(Utils.json2obj(responseString).remainPoint)
 
     # 파트너 포인트충전 팝업 URL 추가 - 2017/08/29
-    def getPartnerURL(self, Token, TOGO, UseStaticIP=False):
-        conn = self._getconn(UseStaticIP)
+    def getPartnerURL(self, Token, TOGO, UseStaticIP=False, UseGAIP=False):
+        conn = self._getconn(UseStaticIP, UseGAIP)
 
         conn.request('GET','/' + Token.serviceID + '/URL?TG='+TOGO,'', {'Authorization':'Bearer ' + Token.session_token})
 
@@ -124,11 +131,11 @@ class Token(__with_metaclass(Singleton)):
         else:
             return Utils.json2obj(responseString).url
 
-    def getTime(self, UseStaticIP=False, UseLocalTimeYN=True):
+    def getTime(self, UseStaticIP=False, UseLocalTimeYN=True, UseGAIP=False):
         if(UseLocalTimeYN == True):
             return datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
 
-        conn = self._getconn(UseStaticIP)
+        conn = self._getconn(UseStaticIP, UseGAIP)
 
         conn.request('GET', '/Time')
 
