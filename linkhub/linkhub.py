@@ -43,13 +43,10 @@ class Token(__with_metaclass(Singleton)):
     def _getconn(self, UseStaticIP=False, UseGAIP=False):
         if(UseGAIP) :
             self.__conn = httpclient.HTTPSConnection(LINKHUB_ServiceURL_GA)
-            print('GA IP')
         elif(UseStaticIP) :
             self.__conn = httpclient.HTTPSConnection(LINKHUB_ServiceURL_Static)
-            print('Static IP')
         else :
             self.__conn = httpclient.HTTPSConnection(LINKHUB_ServiceURL)
-            print('Default IP')
         self.__connectedAt = stime()
 
         return self.__conn
