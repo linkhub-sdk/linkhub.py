@@ -71,6 +71,7 @@ class Token(__with_metaclass(Singleton)):
         if forwardIP != None : headers['x-lh-forwarded'] = forwardIP
         headers['Authorization'] = 'LINKHUB ' + LinkID + ' ' + hmac
         headers['Content-Type'] = 'Application/json'
+        headers["User-Agent"] = "PYTHON POPBILL SDK"
 
         conn = self._getconn(UseStaticIP, UseGAIP)
 
