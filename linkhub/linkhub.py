@@ -89,7 +89,10 @@ class Token(__with_metaclass(Singleton)):
     def balance(self, Token, UseStaticIP=False, UseGAIP=False):
         conn = self._getconn(UseStaticIP, UseGAIP)
 
-        conn.request('GET','/' + Token.serviceID + '/Point','',{'Authorization':'Bearer ' + Token.session_token})
+        headers = {'Authorization':'Bearer ' + Token.session_token}
+        headers['User-Agent'] = 'PYTHON LINKHUB SDK'
+
+        conn.request('GET','/' + Token.serviceID + '/Point','',headers)
 
         response = conn.getresponse()
         responseString = response.read()
@@ -103,7 +106,10 @@ class Token(__with_metaclass(Singleton)):
     def partnerBalance(self, Token, UseStaticIP=False, UseGAIP=False):
         conn = self._getconn(UseStaticIP, UseGAIP)
 
-        conn.request('GET','/' + Token.serviceID + '/PartnerPoint','',{'Authorization':'Bearer ' + Token.session_token})
+        headers = {'Authorization':'Bearer ' + Token.session_token}
+        headers['User-Agent'] = 'PYTHON LINKHUB SDK'
+
+        conn.request('GET','/' + Token.serviceID + '/PartnerPoint','',headers)
 
         response = conn.getresponse()
         responseString = response.read()
@@ -118,7 +124,10 @@ class Token(__with_metaclass(Singleton)):
     def getPartnerURL(self, Token, TOGO, UseStaticIP=False, UseGAIP=False):
         conn = self._getconn(UseStaticIP, UseGAIP)
 
-        conn.request('GET','/' + Token.serviceID + '/URL?TG='+TOGO,'', {'Authorization':'Bearer ' + Token.session_token})
+        headers = {'Authorization':'Bearer ' + Token.session_token}
+        headers['User-Agent'] = 'PYTHON LINKHUB SDK'
+
+        conn.request('GET','/' + Token.serviceID + '/URL?TG='+TOGO,'',headers)
 
         response = conn.getresponse()
         responseString = response.read()
@@ -135,7 +144,7 @@ class Token(__with_metaclass(Singleton)):
 
         conn = self._getconn(UseStaticIP, UseGAIP)
 
-        conn.request('GET', '/Time')
+        conn.request('GET', '/Time','',{'User-Agent':'PYTHON LINKHUB SDK'})
 
         response = conn.getresponse()
         responseString = response.read()
