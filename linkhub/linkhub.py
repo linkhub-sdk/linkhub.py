@@ -35,18 +35,26 @@ class Singleton(type):
         return cls._instances[cls]
 
 class Token(__with_metaclass(Singleton)):
+    _ServiceURL = ''
+
     def __init__(self,timeOut = 15):
         self.__conn = httpclient.HTTPSConnection(LINKHUB_ServiceURL);
         self.__connectedAt = stime()
         self.__timeOut = timeOut
 
+    def serviceURL(self, ServiceURL):
+        self._ServiceURL = ServiceURL
+
     def _getconn(self, UseStaticIP=False, UseGAIP=False):
-        if(UseGAIP) :
-            self.__conn = httpclient.HTTPSConnection(LINKHUB_ServiceURL_GA)
-        elif(UseStaticIP) :
-            self.__conn = httpclient.HTTPSConnection(LINKHUB_ServiceURL_Static)
+        if self._ServiceURL != None and self._ServiceURL != '':
+            self.__conn = httpclient.HTTPSConnection(self._ServiceURL)
         else :
-            self.__conn = httpclient.HTTPSConnection(LINKHUB_ServiceURL)
+            if(UseGAIP) :
+                self.__conn = httpclient.HTTPSConnection(LINKHUB_ServiceURL_GA)
+            elif(UseStaticIP) :
+                self.__conn = httpclient.HTTPSConnection(LINKHUB_ServiceURL_Static)
+            else :
+                self.__conn = httpclient.HTTPSConnection(LINKHUB_ServiceURL)
         self.__connectedAt = stime()
 
         return self.__conn

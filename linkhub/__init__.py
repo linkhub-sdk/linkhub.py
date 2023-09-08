@@ -1,4 +1,4 @@
-__version__ = '1.5.0'
+__version__ = '1.6.0'
 Version = __version__  # for backward compatibility
 __all__ = ["Token","LinkhubException"]
 from .linkhub import Token, LinkhubException
@@ -19,3 +19,6 @@ def getPartnerURL(_Token, TOGO, UseStaticIP=False, UseGAIP=False):
 
 def getTime(UseStaticIP=False, UseLocalTimeYN=True, UseGAIP=False):
     return TokenInstance.getTime(UseStaticIP, UseLocalTimeYN, UseGAIP)
+
+def authURL(AuthURL):
+    return TokenInstance.serviceURL(AuthURL)
