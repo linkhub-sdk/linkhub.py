@@ -14,8 +14,7 @@ from hashlib import sha256
 import hmac
 from collections import namedtuple
 
-# LINKHUB_ServiceURL = "auth.linkhub.co.kr"
-LINKHUB_ServiceURL = "dev-auth.linkhub.kr"
+LINKHUB_ServiceURL = "auth.linkhub.co.kr"
 LINKHUB_ServiceURL_Static = "static-auth.linkhub.co.kr"
 LINKHUB_ServiceURL_GA = "ga-auth.linkhub.co.kr"
 LINKHUB_APIVersion = "2.0"
