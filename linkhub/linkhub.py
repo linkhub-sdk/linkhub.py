@@ -14,7 +14,8 @@ from hashlib import sha256
 import hmac
 from collections import namedtuple
 
-LINKHUB_ServiceURL = "auth.linkhub.co.kr"
+# LINKHUB_ServiceURL = "auth.linkhub.co.kr"
+LINKHUB_ServiceURL = "dev-auth.linkhub.kr"
 LINKHUB_ServiceURL_Static = "static-auth.linkhub.co.kr"
 LINKHUB_ServiceURL_GA = "ga-auth.linkhub.co.kr"
 LINKHUB_APIVersion = "2.0"
@@ -47,7 +48,24 @@ class Token(__with_metaclass(Singleton)):
 
     def _getconn(self, UseStaticIP=False, UseGAIP=False):
         if self._ServiceURL != None and self._ServiceURL != '':
-            self.__conn = httpclient.HTTPSConnection(self._ServiceURL)
+            if 'https://' in self._ServiceURL :
+                url = self._ServiceURL.replace('https://', '').split(':')
+                host = url[0]
+                if len(url) == 1 :
+                    self.__conn = httpclient.HTTPSConnection(host)
+                elif len(url) > 1 :
+                    port = url[1]
+                    self.__conn = httpclient.HTTPSConnection(host + ":" + port)
+            elif 'http://' in self._ServiceURL :
+                url = self._ServiceURL.replace('http://', '').split(':')
+                host = url[0]
+                if len(url) == 1 :
+                    self.__conn = httpclient.HTTPConnection(host)
+                elif len(url) > 1 :
+                    port = url[1]
+                    self.__conn = httpclient.HTTPConnection(host + ":" + port)
+            else :
+                raise LinkhubException(-99999999, '링크허브 서버 접속 실패')
         else :
             if(UseGAIP) :
                 self.__conn = httpclient.HTTPSConnection(LINKHUB_ServiceURL_GA)
