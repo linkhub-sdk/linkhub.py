@@ -37,11 +37,6 @@ class Singleton(type):
 class Token(__with_metaclass(Singleton)):
     _ServiceURL = ''
 
-    def __init__(self,timeOut = 15):
-        self.__conn = httpclient.HTTPSConnection(LINKHUB_ServiceURL);
-        self.__connectedAt = stime()
-        self.__timeOut = timeOut
-
     def serviceURL(self, ServiceURL):
         self._ServiceURL = ServiceURL
 
@@ -64,7 +59,7 @@ class Token(__with_metaclass(Singleton)):
                     port = url[1]
                     self.__conn = httpclient.HTTPConnection(host + ":" + port)
             else :
-                raise LinkhubException(-99999999, '링크허브 서버 접속 실패')
+                raise LinkhubException(-99999999, 'authURL에 전송 프로토콜(HTTP 또는 HTTPS)을 포함하여 주시기 바랍니다.')
         else :
             if(UseGAIP) :
                 self.__conn = httpclient.HTTPSConnection(LINKHUB_ServiceURL_GA)
